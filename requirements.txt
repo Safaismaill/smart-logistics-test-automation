@@ -1,0 +1,5 @@
+# pytest runs our automated tests
+pytest
+
+# requests sends HTTP requests to the Java Smart Logistics API
+requests
