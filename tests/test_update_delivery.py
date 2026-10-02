@@ -3,25 +3,17 @@ import requests
 from config import BASE_URL
 
 
-def test_update_delivery():
+def test_update_delivery(create_delivery):
 
-    # First create a temporary delivery to update
-    new_delivery = {
-        "customerName": "Update Test Customer",
-        "address": "10 Original Street",
-        "postcode": "M4 1AA",
-        "status": "PENDING"
-    }
-
-    create_response = requests.post(
-        BASE_URL,
-        json=new_delivery
+    # Create a temporary delivery using the reusable fixture
+    delivery = create_delivery(
+        customer_name="Update Test Customer",
+        address="10 Original Street",
+        postcode="M4 1AA",
+        status="PENDING"
     )
 
-    assert create_response.status_code == 200
-
-    created_delivery = create_response.json()
-    delivery_id = created_delivery["id"]
+    delivery_id = delivery["id"]
 
     # New values we want to save
     updated_delivery = {
@@ -48,13 +40,6 @@ def test_update_delivery():
     assert result["postcode"] == "M5 2BB"
     assert result["status"] == "DELIVERED"
 
-    # Clean up the temporary record
-    delete_response = requests.delete(
-        f"{BASE_URL}/{delivery_id}"
-    )
-
-    assert delete_response.status_code == 200
-
 
 def test_update_delivery_that_does_not_exist():
 
@@ -71,7 +56,6 @@ def test_update_delivery_that_does_not_exist():
         json=updated_delivery
     )
 
-    # API should return 404 Not Found
     assert response.status_code == 404
 
     error_response = response.json()
@@ -79,27 +63,19 @@ def test_update_delivery_that_does_not_exist():
     assert error_response["error"] == "Delivery with ID 999 was not found"
 
 
-def test_update_delivery_with_blank_status():
+def test_update_delivery_with_blank_status(create_delivery):
 
-    # Create a temporary delivery first
-    new_delivery = {
-        "customerName": "Validation Test Customer",
-        "address": "30 Test Street",
-        "postcode": "M7 1AA",
-        "status": "PENDING"
-    }
-
-    create_response = requests.post(
-        BASE_URL,
-        json=new_delivery
+    # Create a temporary delivery using the fixture
+    delivery = create_delivery(
+        customer_name="Validation Test Customer",
+        address="30 Test Street",
+        postcode="M7 1AA",
+        status="PENDING"
     )
 
-    assert create_response.status_code == 200
+    delivery_id = delivery["id"]
 
-    created_delivery = create_response.json()
-    delivery_id = created_delivery["id"]
-
-    # Try to update it with invalid data
+    # Try to update the delivery with a blank status
     invalid_update = {
         "customerName": "Validation Test Customer",
         "address": "30 Test Street",
@@ -114,10 +90,3 @@ def test_update_delivery_with_blank_status():
 
     # Blank status should fail validation
     assert update_response.status_code == 400
-
-    # Clean up the temporary delivery
-    delete_response = requests.delete(
-        f"{BASE_URL}/{delivery_id}"
-    )
-
-    assert delete_response.status_code == 200
