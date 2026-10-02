@@ -2,25 +2,18 @@ import requests
 
 from config import BASE_URL
 
-def test_delete_delivery():
 
-    # Create a temporary delivery that we can safely delete
-    new_delivery = {
-        "customerName": "Delete Test Customer",
-        "address": "40 Delete Street",
-        "postcode": "M8 1AA",
-        "status": "PENDING"
-    }
+def test_delete_delivery(create_delivery):
 
-    create_response = requests.post(
-        BASE_URL,
-        json=new_delivery
+    # Create a temporary delivery using the reusable fixture
+    delivery = create_delivery(
+        customer_name="Delete Test Customer",
+        address="40 Delete Street",
+        postcode="M8 1AA",
+        status="PENDING"
     )
 
-    assert create_response.status_code == 200
-
-    created_delivery = create_response.json()
-    delivery_id = created_delivery["id"]
+    delivery_id = delivery["id"]
 
     # Delete the temporary delivery
     delete_response = requests.delete(
@@ -34,7 +27,7 @@ def test_delete_delivery():
         f"{BASE_URL}/{delivery_id}"
     )
 
-    # It should no longer exist
+    # The delivery should no longer exist
     assert get_response.status_code == 404
 
 
